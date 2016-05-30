@@ -73,6 +73,8 @@ class HTMLRender(HTMLParser):
     def initialize_textview(self,textview) :
         text_buffer = textview.get_buffer()
         textview.set_editable(False)
+        font_desc = Pango.font_description_from_string ("Serif 15");
+        textview.modify_font(font_desc);
         for tag in self.__formats:
             text_buffer.create_tag(tag, **self.__formats[tag])
 
@@ -175,7 +177,8 @@ class HellowWorldGTK:
         self.labelCountdownDisplay = self.glade.get_object('labelCountdownDisplay')
         self.countdown_seconds = parse_mmss_to_seconds(self.entryCountdownTimer.get_text())
         
-        self.player.set_media(instance.media_new("/home/danlyke/Music/SquareDance/SDCard/Singing/Bare Necessities - CL-152.mp3"))
+#        self.player.set_media(instance.media_new("/home/danlyke/Music/SquareDance/SDCard/Singing/Bare Necessities - CL-152.mp3"))
+        self.filechooserbuttonNextQueued.set_current_folder("/home/danlyke/Music/SquareDance/SDCard/")
         self.event_manager = self.player.event_manager()
         self.scaleSongPosition.set_range(0,1)
         self.scaleSongTempo.set_range(.5,1.5)
