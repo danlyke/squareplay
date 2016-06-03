@@ -133,6 +133,7 @@ class HTMLRender(HTMLParser):
             pass
 
 
+        
 
 
 
@@ -151,7 +152,8 @@ def parse_mmss_to_seconds(mmss) :
         return int(match.group(1)) * 60 + int(match.group(2))
     return None
 
-class HellowWorldGTK:
+
+class SquarePlayGTK:
 
     def __init__(self):
         self.player = instance.media_player_new()
@@ -315,7 +317,7 @@ class HellowWorldGTK:
 
 if __name__ == "__main__":
     try:
-        a = HellowWorldGTK()
+        a = SquarePlayGTK()
         Gtk.main()
     except KeyboardInterrupt:
         pass
