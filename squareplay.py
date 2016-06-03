@@ -294,6 +294,7 @@ class SquarePlayGTK:
         htmlrenderer.set_text(textview, text)
 
     def play_song(self,filename) :
+        self.write_config()
         self.debug_log("Attempting to play: " + filename);
         media = instance.media_new(filename)
         self.player.set_media(media)
@@ -335,6 +336,7 @@ class SquarePlayGTK:
         
     
     def on_windowApplication_delete_event(self, widget, event):
+        self.write_config()
         Gtk.main_quit()
 
 
