@@ -10,7 +10,7 @@ import sys
 import vlc
 import os
 import re
-
+import inifiles
 
 
 class HTMLRender(HTMLParser):
@@ -163,22 +163,24 @@ class HellowWorldGTK:
         self.glade.connect_signals(self)
         self.glade.get_object("windowApplication").show_all()
         self.filechooserbuttonNextQueued = self.glade.get_object("filechooserbuttonNextQueued")
-        self.labelCurrentSong = self.glade.get_object('labelCurrentSong')
-        self.labelSongLength = self.glade.get_object('labelSongLength')
-        self.scaleSongPosition = self.glade.get_object('scaleSongPosition')
-        self.togglebuttonLoop = self.glade.get_object('togglebuttonLoop')
-        self.buttonLoopAuto = self.glade.get_object('buttonLoopAuto')
-        self.entryLoopFrom = self.glade.get_object('entryLoopFrom')
-        self.entryLoopTo = self.glade.get_object('entryLoopTo')
-        self.scaleSongTempo = self.glade.get_object('scaleSongTempo')
-        self.textviewCueSheet = self.glade.get_object('textviewCueSheet')
+
+        for control in (
+                'labelCurrentSong',
+                'labelSongLength',
+                'scaleSongPosition',
+                'togglebuttonLoop',
+                'buttonLoopAuto',
+                'entryLoopFrom',
+                'entryLoopTo',
+                'scaleSongTempo',
+                'textviewCueSheet'
+        ) :
+            setattr(self, control, self.glade.get_object(control))
         
         self.entryCountdownTimer = self.glade.get_object('entryCountdownTimer')
         self.labelCountdownDisplay = self.glade.get_object('labelCountdownDisplay')
         self.countdown_seconds = parse_mmss_to_seconds(self.entryCountdownTimer.get_text())
         
-#        self.player.set_media(instance.media_new("/home/danlyke/Music/SquareDance/SDCard/Singing/Bare Necessities - CL-152.mp3"))
-        self.filechooserbuttonNextQueued.set_current_folder("/home/danlyke/Music/SquareDance/SDCard/")
         self.event_manager = self.player.event_manager()
         self.scaleSongPosition.set_range(0,1)
         self.scaleSongTempo.set_range(.5,1.5)
@@ -188,7 +190,14 @@ class HellowWorldGTK:
         self.scaleSongTempo.set_value(1)
 
         self.labelTimerDisplay = self.glade.get_object('labelTimerDisplay')
+        self.inifile = inifiles.IniFile()
 
+        default_directory = os.path.expanduser("~/Music")
+        if not os.path.exists(default_directory):
+            default_directory = os.path.expanduser("~")
+        
+        self.filechooserbuttonNextQueued.set_current_folder(self.inifile.get('Last Directory', default_directory))
+        
     def debug_log(self, text):
         print(text)
 
@@ -219,6 +228,25 @@ class HellowWorldGTK:
                 
         return self.player.get_state() == vlc.State.Playing
 
+    def write_config(self):
+        current_song = self.labelCurrentSong.get_text()
+        self.inifile.set_music(current_song, 'Tempo', self.player.get_rate() )
+        self.inifile.set_music(current_song, 'Loop', '1' if self.togglebuttonLoop.get_active() else '0' )
+        self.inifile.set_music(current_song, 'Loop From', self.entryLoopFrom.get_text() )
+        self.inifile.set_music(current_song, 'Loop To', self.entryLoopTo.get_text() )
+        self.inifile.set('Last Directory', self.filechooserbuttonNextQueued.get_current_folder())
+        self.inifile.write()
+
+    def read_config(self):
+        current_song = self.labelCurrentSong.get_text()
+        tempo = self.inifile.get_music(current_song, 'Tempo', '1')
+        self.player.set_rate(tempo)
+        self.scaleSongTempo.set_value(tempo)
+        self.togglebuttonLoop.set_active(int(self.inifile.get_music(current_song, 'Loop', '0')))
+        self.entryLoopFrom.get_text(int(self.inifile.get_music(current_song, 'Loop From', '0:00')))
+        self.entryLoopTo.get_text(int(self.inifile.get_music(current_song, 'Loop To', '0:00')))
+
+        
     def on_buttonLoopAuto_clicked_cb(self, event) :
         self.loop_start = None
         self.loop_end = None
@@ -253,29 +281,40 @@ class HellowWorldGTK:
         length_in_seconds = length / 1000;
         self.labelSongLength.set_text( seconds_to_formatted(length_in_seconds) )
         return False
-    
 
+    def load_html_into_textview(self, path, textview):
+        htmlrenderer = HTMLRender()
+        htmlrenderer.initialize_textview(textview)
+        text = ""
+        with open(path, 'r') as f:
+            for line in f :
+                text += line
+        htmlrenderer.set_text(textview, text)
+
+    def play_song(self,filename) :
+        self.debug_log("Attempting to play: " + filename);
+        media = instance.media_new(filename)
+        self.player.set_media(media)
+        print("Set media")
+        self.labelCurrentSong.set_text(os.path.basename(filename))
+        self.on_buttonPlay_clicked_cb(None)
+        (root,ext) = os.path.splitext(filename)
+        for alt_ext in ('.html', '.htm') :
+            path = root + alt_ext
+            if os.path.exists(path) :
+                self.load_html_into_textview(path, self.textviewCueSheet)
+                
+    def get_current_song_name(self):
+        return self.labelCurrentSong.get_text()
+
+    def get_current_song_base_name(self):
+        name = self.get_current_song_name()
+        return re.sub(r'\s*\(.*?\)', '', name)
+        
     def on_buttonPlayNextSong_clicked_cb(self,event) :
         filename = self.filechooserbuttonNextQueued.get_filename()
         if filename != None :
-            self.debug_log("Attempting to play: " + filename);
-            media = instance.media_new(filename)
-            self.player.set_media(media)
-            print("Set media")
-            self.labelCurrentSong.set_text(os.path.basename(filename))
-            self.on_buttonPlay_clicked_cb(event)
-            htmlrenderer = HTMLRender()
-            htmlrenderer.initialize_textview(self.textviewCueSheet)
-            (root,ext) = os.path.splitext(filename)
-            for alt_ext in ('.html', '.htm') :
-                path = root + alt_ext
-                if os.path.exists(path) :
-                    text = ""
-                    with open(path, 'r') as f:
-                        for line in f :
-                            text += line
-                    htmlrenderer.set_text(self.textviewCueSheet, text)
-
+            self.play_song(filename)
                     
     def timer_countdown(self):
         self.countdown_seconds -= 1
