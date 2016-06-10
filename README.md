@@ -3,7 +3,7 @@
 SquarePlay is a music player for playing square dance music under
 Linux, and hopefully the Mac. It requires Python3, VLC and GTK.
 
-![screen shot](https://github.com/danlyke/squareplay/raw/master/src/images/squareplay_screenshot.png)
+![screen shot](https://github.com/danlyke/squareplay/raw/master/images/squareplay_screenshot.png)
 
 I was struggling to get SqView running under Wine on Linux, so I
 started slinging code, and then I started adding features. This is
@@ -11,7 +11,7 @@ still kind of rough, but getting somewhere.
 
 A few things require explanation:
 
-![screen shot](https://github.com/danlyke/squareplay/raw/master/src/images/squareplay_screenshot_numbered.png)
+![screen shot](https://github.com/danlyke/squareplay/raw/master/images/squareplay_screenshot_numbered.png)
 
 1. The music tab, the tab you're currently looking at.
 
