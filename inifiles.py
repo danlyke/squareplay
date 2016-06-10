@@ -33,20 +33,18 @@ class IniFile :
         
     def set(self, attr, value):
         self.add_section(self.main_section)
-        print("Setting section [", self.main_section, "] ", attr, value)
         return self.config.set(self.main_section, attr, value)
 
     def get_music(self, song, attr, default = ''):
         value = default
         try:
             value = self.config.get('Song - ' + song, attr)
-        except configparser.NoOptionError :
+        except (configparser.NoOptionError, configparser.NoSectionError) :
             pass
         return value
         
     def set_music(self, song, attr, value):
         self.add_section('Song - ' + song)
-        print("Setting section [", self.main_section, "] ", attr, value)
         return self.config.set('Song - ' + song, attr, value)
     
     
