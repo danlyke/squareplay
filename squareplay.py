@@ -428,21 +428,28 @@ class SquarePlayGTK:
 #                                      GObject.TYPE_STRING ) )
         pass
     def initialize_file_treeview(self,treeview) :
+        model = treeview.get_model()
+        for col in (WEEKS_SINCE_PLAY_COLUMN, SONG_NAME_COLUMN, RECORD_LABEL_NAME_COLUMN) :
+            model.set_sort_func(col, self.column_sort_func_method, col)
+
         renderer = Gtk.CellRendererText()
         renderer.set_property("xalign", 0.0)
 
-        column = Gtk.TreeViewColumn("Label", renderer, text=RECORD_LABEL_NAME_COLUMN)
-        column.set_clickable(True)
-        treeview.append_column(column)
+        for (label, column_id) in (("Age", WEEKS_SINCE_PLAY_COLUMN), ("Name", SONG_NAME_COLUMN), ("Label", RECORD_LABEL_NAME_COLUMN)) :
+            column = Gtk.TreeViewColumn(label, renderer, text=column_id)
+            column.set_clickable(True)
+            column.set_sort_column_id(column_id)
+            treeview.append_column(column)
 
-        column = Gtk.TreeViewColumn("Name", renderer, text=SONG_NAME_COLUMN)
-        column.set_clickable(True)
-        treeview.append_column(column)
-
-        column = Gtk.TreeViewColumn("Since", renderer, text=WEEKS_SINCE_PLAY_COLUMN)
-        column.set_clickable(True)
-
-        treeview.append_column(column)
+        
+    def column_sort_func_method(self, model, iter1, iter2, data) :
+        a = model.get_value(iter1, data)
+        b = model.get_value(iter2, data)
+        if a < b :
+            return -1
+        if a > b :
+            return 1
+        return 0        
 
     def file_row_from_name(self,name):
         current_song = os.path.basename(name)
@@ -458,9 +465,9 @@ class SquarePlayGTK:
         for f in sorted(files, key = lambda x: x[SONG_NAME_COLUMN]) :
             iter = liststore.append(None)
             liststore.set(iter,
-                          RECORD_LABEL_NAME_COLUMN, f[0],
+                          WEEKS_SINCE_PLAY_COLUMN, f[0],
                           SONG_NAME_COLUMN, f[1],
-                          WEEKS_SINCE_PLAY_COLUMN, f[2],
+                          RECORD_LABEL_NAME_COLUMN, f[2],
                           FILE_NAME_COLUMN, f[3]   )
 
         
