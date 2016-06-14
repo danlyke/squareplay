@@ -461,6 +461,7 @@ class SquarePlayGTK:
     
     def load_directory_into_liststore(self, filechooserbutton, liststore) :
         directory = filechooserbutton.get_filename()
+        liststore.clear()
         files = [self.file_row_from_name(f) for f in os.listdir(directory) if fnmatch.fnmatch(f, '*.mp3')]
         for f in sorted(files, key = lambda x: x[SONG_NAME_COLUMN]) :
             iter = liststore.append(None)
@@ -538,7 +539,6 @@ class SquarePlayGTK:
     def on_comboboxSessionName_changed_cb(self, event) :
         active = self.comboboxSessionName.get_active()
         if -1 != active and self.current_session_name_idx != active :
-            print("Index changed")
             self.set_current_session_name_from_control()
             self.load_directory_into_liststore(self.filechooserbuttonFolder1, self.liststoreFolder1)
             self.load_directory_into_liststore(self.filechooserbuttonFolder2, self.liststoreFolder2)
