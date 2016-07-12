@@ -181,9 +181,10 @@ class SquarePlayGTK:
                       )
             if self.loop_start != None and self.loop_end != None :
                 length = self.player.get_length();
-                song_position_in_seconds = length * song_position / 1000
-            if song_position_in_seconds > self.loop_end :
-                self.player.set_position(self.loop_start)
+                song_position_in_seconds = length * song_position
+                print("Timer tick ", length, " ", song_position, " ", song_position_in_seconds, " ", self.loop_start, " ", self.loop_end)
+                if song_position_in_seconds > self.loop_end :
+                    self.player.set_position(self.loop_start)
                 
         return self.player.is_playing()
 
@@ -260,13 +261,14 @@ class SquarePlayGTK:
             text = '<h1>No cuesheet found at ' + path + '</h1>'
         self.htmlrenderer.set_text(textview, text)
 
-    def play_song(self,filename) :
+    def play_song(self,filename, play_immediately = True) :
         self.write_config()
         self.player.load_song(filename)
         current_song = os.path.basename(filename)
         self.labelCurrentSong.set_text(current_song)
         self.read_config()
-        self.on_buttonPlay_clicked_cb(None)
+        if play_immediately :
+            self.on_buttonPlay_clicked_cb(None)
         self.inifile.set_music(current_song, 'Session - ' + self.current_session_name, time.time())
         self.find_and_load_cuesheet(filename,self.textviewCueSheet)
 
@@ -299,6 +301,14 @@ class SquarePlayGTK:
             iter = self.next_queued_liststore.get_iter(self.next_queued_line)
             self.next_queued_liststore.set(iter, WEEKS_SINCE_PLAY_COLUMN, '***')
                     
+    def on_buttonQueueNextSong_clicked_cb(self, event) :
+        filename = self.filechooserbuttonNextQueued.get_filename()
+        if filename != None :
+            self.play_song(filename, False)
+        if self.next_queued_liststore != None and self.next_queued_line != None :
+            iter = self.next_queued_liststore.get_iter(self.next_queued_line)
+            self.next_queued_liststore.set(iter, WEEKS_SINCE_PLAY_COLUMN, '***')
+        
     def timer_countdown(self):
         self.countdown_timer.tick()
         GObject.timeout_add(1000*self.countdown_timer.next_tick(),self.timer_countdown)
