@@ -318,7 +318,7 @@ class SquarePlayGTK:
         self.countdown_timer.reset(self.entryCountdownTimer.get_text())
 
     def on_buttonStartCountdownTimer_clicked_cb(self, event):
-        GObject.timeout_add(1000*self.coutndown_timer.next_tick(),self.timer_countdown)
+        GObject.timeout_add(1000*self.countdown_timer.next_tick(),self.timer_countdown)
 
 
     def initialize_file_liststore(self, liststore):
